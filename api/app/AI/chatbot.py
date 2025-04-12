@@ -5,7 +5,7 @@ import os
 import shutil
 from contextlib import AsyncExitStack
 from typing import Any
-from app.config.env import get_settings
+from app.core.config import settings
 import httpx
 from dotenv import load_dotenv
 from mcp import ClientSession, StdioServerParameters
@@ -27,7 +27,7 @@ class Configuration:
 
     def __init__(self) -> None:
         """Initialize configuration with environment variables."""
-        self.settings = get_settings()
+        self.settings = settings
 
     @staticmethod
     def load_env() -> None:
@@ -454,31 +454,7 @@ class ChatSession:
 
         return final_response
 
-    async def start(self) -> None:
-        """Main chat session handler for interactive mode."""
-        # logging.info("Starting chat session...")
-        try:
-            await self.initialize()
-
-            while True:
-                try:
-                    user_input = input("You: ").strip()
-                    if user_input.lower() in ["quit", "exit"]:
-                        # logging.info("\nExiting...")
-                        break
-
-                    response = await self.process_message(user_input)
-
-                    # Response is already printed if stream_to_console=True
-                    # If we didn't stream, print the response now
-                    print(f"\nAssistant: {response}")
-
-                except KeyboardInterrupt:
-                    # logging.info("\nExiting...")
-                    break
-
-        finally:
-            await self.cleanup_servers()
+    
 
 
 # Store a global chat session to maintain conversation state
@@ -503,25 +479,19 @@ async def initialize_chat_session(use_tools: bool = True):
         llm_client = LLMClient(config.settings)
 
         if use_tools:
-            try:
-                # Get the absolute path to the current directory
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, "servers_config.json")
-                server_config = config.load_config(config_path)
-                servers = [
-                    Server(name, srv_config)
-                    for name, srv_config in server_config["mcpServers"].items()
-                ]
-                _chat_session = ChatSession(servers, llm_client)
+            # Get the absolute path to the current directory
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            config_path = os.path.join(current_dir, "servers_config.json")
+            server_config = config.load_config(config_path)
+            servers = [
+                Server(name, srv_config)
+                for name, srv_config in server_config["mcpServers"].items()
+            ]
+            _chat_session = ChatSession(servers, llm_client)
 
-                # Initialize the session with tools
-                await _chat_session.initialize()
-                print("Chat session initialized with tools.")
-            except Exception as e:
-                print(f"Warning: Could not initialize tools: {e}")
-                print("Falling back to basic chat without tools.")
-                _chat_session = ChatSession([], llm_client)
-                await _chat_session.initialize(with_tools=False)
+            # Initialize the session with tools
+            await _chat_session.initialize()
+            print("Chat session initialized with tools.")
         else:
             # Create a session without tools
             _chat_session = ChatSession([], llm_client)

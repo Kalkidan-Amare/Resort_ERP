@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import os
+import sys
 
 from app.core.config import settings
 from app.router.routers import router
@@ -8,6 +10,7 @@ from app.core.database import Base, engine
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # Optional: Add project root to Python path
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
