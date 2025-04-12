@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "weather_forecast": {
+          "command": "python3",
+          "args": [
+            "app/AI/servers/weekly-weather-mcp-master/weather_mcp_server.py"
+          ],
+          "disabled": false,
+          "autoApprove": ["get_weather", "get_current_weather"]
+        }
+      }
+}
