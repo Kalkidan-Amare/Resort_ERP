@@ -21,12 +21,15 @@ from openai import OpenAI
 #     ]
 # )
 
+_SETTINGS = None
 
 class Configuration:
     """Manages configuration and environment variables for the MCP client."""
 
     def __init__(self) -> None:
         """Initialize configuration with environment variables."""
+        global _SETTINGS
+        _SETTINGS = settings
         self.settings = settings
 
     @staticmethod
@@ -79,41 +82,22 @@ class Server:
 
     async def initialize(self) -> None:
         """Initialize the server connection."""
+        command = (
+            shutil.which("npx")
+            if self.config["command"] == "npx"
+            else self.config["command"]
+        )
+        if command is None:
+            raise ValueError("The command must be a valid string and cannot be None.")
+
+        server_params = StdioServerParameters(
+            command=command,
+            args=self.config["args"],
+            env={**os.environ, **self.config["env"]}
+            if self.config.get("env")
+            else None,
+        )
         try:
-            # Get the command to execute
-            command = (
-                shutil.which("npx")
-                if self.config["command"] == "npx"
-                else self.config["command"]
-            )
-            if command is None:
-                raise ValueError("The command must be a valid string and cannot be None.")
-
-            # Check if the script exists if it's a path
-            if "args" in self.config and len(self.config["args"]) > 0:
-                script_path = self.config["args"][0]
-                if script_path.endswith(".py") and not os.path.isfile(script_path):
-                    # Try to find the script relative to the current directory
-                    current_dir = os.path.dirname(os.path.abspath(__file__))
-                    project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
-                    alternative_path = os.path.join(project_root, script_path)
-
-                    if os.path.isfile(alternative_path):
-                        # Update the path to the absolute path
-                        self.config["args"][0] = alternative_path
-                    else:
-                        print(f"Warning: Script not found at {script_path} or {alternative_path}")
-
-            # Create server parameters
-            server_params = StdioServerParameters(
-                command=command,
-                args=self.config["args"],
-                env={**os.environ, **self.config["env"]}
-                if self.config.get("env")
-                else None,
-            )
-
-            # Initialize the server
             stdio_transport = await self.exit_stack.enter_async_context(
                 stdio_client(server_params)
             )
@@ -123,11 +107,12 @@ class Server:
             )
             await session.initialize()
             self.session = session
-            print(f"Server {self.name} initialized successfully.")
+            # logging.info(f"Server {self.name} initialized successfully.")
         except Exception as e:
-            print(f"Error initializing server {self.name}: {e}")
+            # logging.error(f"Error initializing server {self.name}: {e}")
             await self.cleanup()
             raise
+
 
     async def list_tools(self) -> list[Any]:
         if not self.session:
@@ -244,9 +229,9 @@ class LLMClient:
     """Manages communication with the LLM provider."""
 
     def __init__(self, settings) -> None:
-        self.token = settings.token
-        self.endpoint = settings.endpoint
-        self.model_name = settings.model_name
+        self.token = settings.TOKEN
+        self.endpoint = settings.ENDPOINT
+        self.model_name = settings.MODEL_NAME
 
     def get_response(self, messages: list[dict[str, str]]) -> str:
         """Get a response from the LLM.
@@ -471,6 +456,7 @@ async def initialize_chat_session(use_tools: bool = True):
     """
     global _chat_session
 
+    print("Initializing chat bot session...")
     if _chat_session is not None:
         return _chat_session
 
@@ -480,9 +466,9 @@ async def initialize_chat_session(use_tools: bool = True):
 
         if use_tools:
             # Get the absolute path to the current directory
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            config_path = os.path.join(current_dir, "servers_config.json")
-            server_config = config.load_config(config_path)
+            # current_dir = os.path.dirname(os.path.abspath(__file__))
+            # config_path = os.path.join(current_dir, "servers_config.json")
+            server_config = config.load_config("app/AI/servers_config.json")
             servers = [
                 Server(name, srv_config)
                 for name, srv_config in server_config["mcpServers"].items()
@@ -530,11 +516,11 @@ async def initialize_chat_session(use_tools: bool = True):
 #         return error_msg
 
 
-async def main() -> None:
-    """Initialize and run the chat session in interactive mode."""
-    chat_session = await initialize_chat_session()
-    await chat_session.start()
+# async def main() -> None:
+#     """Initialize and run the chat session in interactive mode."""
+#     chat_session = await initialize_chat_session()
+#     await chat_session.start()
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     asyncio.run(main())

@@ -20,5 +20,9 @@ class Settings:
     
     # Debug mode
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
+    TOKEN: str = os.getenv("TOKEN", "")
+    ENDPOINT: str = os.getenv("ENDPOINT", "")
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "")
+    OPENWEATHER_API_KEY: str = os.getenv("OPENWEATHER_API_KEY", "")
     
 settings = Settings()
