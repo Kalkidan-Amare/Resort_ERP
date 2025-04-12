@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 import uvicorn
 
 from app.core.config import settings
@@ -14,6 +15,7 @@ app = FastAPI(
     version=settings.PROJECT_VERSION,
     debug=settings.DEBUG
 )
+
 
 # CORS middleware
 app.add_middleware(
@@ -35,4 +37,14 @@ def read_root():
     }
 
 if __name__ == "__main__":
+    # Drop all tables with CASCADE
+    # with engine.connect() as connection:
+    #     # Disable foreign key checks temporarily
+    #     connection.execute(text("DROP SCHEMA public CASCADE;"))
+    #     connection.execute(text("CREATE SCHEMA public;"))
+    #     connection.execute(text('GRANT ALL ON SCHEMA public TO postgres;'))
+    #     connection.execute(text('GRANT ALL ON SCHEMA public TO public;'))
+    #     connection.commit()
+   
+
     uvicorn.run("main:app", host="0.0.0.0", port=settings.PORT, reload=True) 

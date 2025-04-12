@@ -1,52 +1,36 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
+# from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
+import os
 
-from app.core.config import settings
+# Load environment variables from .env
+load_dotenv()
 
-# First connect to PostgreSQL server with default database to create our database
-def create_database():
-    try:
-        # Connect to default 'postgres' database to create our application database
-        conn = psycopg2.connect(
-            user=settings.DB_USER,
-            password=settings.DB_PASSWORD,
-            host=settings.DB_HOST,
-            database="postgres"
-        )
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        
-        # Check if database exists
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{settings.DB_NAME}'")
-        exists = cursor.fetchone()
-        
-        if not exists:
-            cursor.execute(f"CREATE DATABASE {settings.DB_NAME}")
-            print(f"Database '{settings.DB_NAME}' created successfully")
-        else:
-            print(f"Database '{settings.DB_NAME}' already exists")
-            
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        print(f"Error creating database: {e}")
+# Fetch variables
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("portDB")
+DBNAME = os.getenv("dbname")
 
-# Create database if it doesn't exist
-create_database()
+# Construct the SQLAlchemy connection string
+DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
+print(DATABASE_URL, 'databaseurl')
 
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+engine = create_engine(DATABASE_URL)
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+
+# Test the connection
 def get_db():
-    db = SessionLocal()
     try:
-        yield db
-    finally:
-        db.close()
+        with engine.connect() as connection:
+            print("Connection successful!")
+            yield SessionLocal()
+    except Exception as e:
+        print(f"Failed to connect: {e}")

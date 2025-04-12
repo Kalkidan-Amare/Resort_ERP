@@ -13,3 +13,4 @@ class Room(Base):
     room_type_id = Column(Integer, ForeignKey("room_types.id"))
     
     room_type = relationship("RoomType", back_populates="rooms")
+    bookings = relationship("Booking", back_populates="room")
