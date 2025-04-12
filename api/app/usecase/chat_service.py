@@ -2,22 +2,25 @@ from app.AI.chatbot import initialize_chat_session
 
 
 class ChatService:
-    def __init__(self):
-        pass    
+    async def new_chat(self):
+        print("Initializing new chat session...")
+        try:
+            print("Starting the chatbot...")
+            cs = await initialize_chat_session()  # Fixed typo and added await
+            print(cs, "cs")
+        except Exception as e:
+            print(f"Error initializing chat session: {e}")
+            raise Exception("Failed to initialize chat session.")
+        return cs  # Return the initialized chat session
     
-    def new_chat(self):
-        return initialize_chat_session    
-    
-    def get_response(self, chat_session, prompt: str):
+    async def get_response(self, chat_session, prompt: str):
         print("Starting the chatbot...")
         print("This may take a moment to initialize the servers...")
+        print("Processing prompt...")
 
-       
-
-        response = chat_session.process_message(prompt)
+        response = await chat_session.process_message(prompt)
         return response
 
 
-
 def get_chat_service():
-    return ChatService
+    return ChatService()

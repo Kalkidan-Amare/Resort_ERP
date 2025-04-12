@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
-from app.core.config import settings
+# Load environment variables from .env file
+load_dotenv()
 import requests
 from datetime import datetime, timedelta, timezone
 
@@ -18,7 +19,7 @@ mcp = FastMCP(
 )
 
 # Get API key from environment variables
-api_key = settings.OPENWEATHER_API_KEY
+api_key = os.environ.get("OPENWEATHER_API_KEY")
 # Define data models
 class WindInfo(BaseModel):
     speed: str = Field(..., description="Wind speed in meters per second")

@@ -40,3 +40,6 @@ class RoomRepository:
             db.commit()
             return True
         return False 
+   
+    def get_all_rooms(self, db: Session) -> List[Room]:
+        return db.query(Room).all()
