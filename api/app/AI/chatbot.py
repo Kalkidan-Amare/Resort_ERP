@@ -373,19 +373,19 @@ class ChatSession:
 
             tools_description = "\n".join([tool.format_for_llm() for tool in all_tools])
 
-            # repo = RoomRepository()
-            # rooms = repo.get_all_rooms(get_db())
-            # rooms_str = ", ".join(
-            #     [
-            #         (
-            #             f"Room {room.room_number} on floor {room.floor}, "
-            #             f"{'available' if room.is_available else 'not available'}, "
-            #             f"Type: {room.room_type.name if room.room_type and hasattr(room.room_type, 'name') else 'N/A'}"
-            #         )
-            #         for room in rooms
-            #     ]
-            # )
-            # print(rooms_str)
+            repo = RoomRepository()
+            rooms = repo.get_all_rooms(get_db())
+            rooms_str = ", ".join(
+                [
+                    (
+                        f"Room {room.room_number} on floor {room.floor}, "
+                        f"{'available' if room.is_available else 'not available'}, "
+                        f"Type: {room.room_type.name if room.room_type and hasattr(room.room_type, 'name') else 'N/A'}"
+                    )
+                    for room in rooms
+                ]
+            )
+            print(rooms_str)
             
             # Create system message with tools description
             system_message = (
