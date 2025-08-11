@@ -7,7 +7,7 @@ import os
 import shutil
 from contextlib import AsyncExitStack
 from typing import Any
-from app.core.config import settings
+from app.core.config import SETTINGS
 import httpx
 from dotenv import load_dotenv
 from mcp import ClientSession, StdioServerParameters
@@ -31,8 +31,8 @@ class Configuration:
     def __init__(self) -> None:
         """Initialize configuration with environment variables."""
         global _SETTINGS
-        _SETTINGS = settings
-        self.settings = settings
+        _SETTINGS = SETTINGS
+        self.settings = SETTINGS
 
     @staticmethod
     def load_env() -> None:
